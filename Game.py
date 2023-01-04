@@ -5,6 +5,7 @@ import os
 WINDOW_RATIO = 0.9
 WINDOW_SIZE = WINDOW_WIDTH, WINDOW_HEIGHT = 720 * WINDOW_RATIO, 1080 * WINDOW_RATIO
 TITLE_SIZE = 50
+SPEED = 10 * WINDOW_RATIO
 FPS = 60
 
 
@@ -20,8 +21,14 @@ def load_image(name, colorkey=None):
 
 class Hero:
 
-    def __init__(self, position):
-        self.x, self.y = position
+    def __init__(self):
+        image = load_image("bear.png")
+        self.image_bear = pygame.transform.scale(image, (125 * WINDOW_RATIO, 125 * WINDOW_RATIO))
+        self.image_bear_right = self.image_bear
+        self.image_bear_left = pygame.transform.flip(self.image_bear, 1, 0)
+        self.width = self.image_bear.get_width()
+        self.x, self.y = WINDOW_WIDTH // 2, WINDOW_HEIGHT - self.image_bear.get_height()\
+                         - self.image_bear.get_height() * 0.2
 
     def get_position(self):
         return self.x, self.y
@@ -29,16 +36,21 @@ class Hero:
     def set_position(self, position):
         self.x, self.y = position
 
-    def render(self, screen):
-        center = self.x * TITLE_SIZE + TITLE_SIZE // 2, self.y * TITLE_SIZE + TITLE_SIZE // 2
-        pygame.draw.circle(screen, (255, 255, 255), center, TITLE_SIZE // 2)
+    def render(self, screen, flag):
+        if flag == 'left':
+            self.image_bear = self.image_bear_left
+        else:
+            self.image_bear = self.image_bear_right
+        screen.blit(self.image_bear, (self.x, self.y))
 
 
 class Ball(pygame.sprite.Sprite):
-    def __init__(self, radius, x, y):
+    def __init__(self, radius, x, y, screen):
         super().__init__(all_sprites)
         radius = radius * WINDOW_RATIO
         self.radius = radius
+        '''image = load_image("shishka2.png")
+        self.image_cones = pygame.transform.scale(image, (radius * WINDOW_RATIO, radius * WINDOW_RATIO))'''
         self.image = pygame.Surface((2 * radius, 2 * radius),
                                     pygame.SRCALPHA, 32)
         pygame.draw.circle(self.image, pygame.Color("red"),
@@ -73,22 +85,25 @@ class Game:
 
     def __init__(self, hero):
         self.hero = hero
+        self.flag = True
 
     def render(self, screen):
-        self.hero.render(screen)
+        self.hero.render(screen, self.flag)
 
     def update_hero(self):
         next_x, next_y = self.hero.get_position()
         if pygame.key.get_pressed()[pygame.K_LEFT]:
-            next_x -= 1
+            next_x -= SPEED
+            self.flag = 'left'
         if pygame.key.get_pressed()[pygame.K_RIGHT]:
-            next_x += 1
+            next_x += SPEED
+            self.flag = 'right'
         if pygame.key.get_pressed()[pygame.K_UP]:
-            next_y -= 1
+            next_y -= SPEED
         if pygame.key.get_pressed()[pygame.K_DOWN]:
-            next_y += 1
-        '''if self.labyrinth.is_free((next_x, next_y)):
-            self.hero.set_position((next_x, next_y))'''
+            next_y += SPEED
+        if 0 < next_x < WINDOW_WIDTH - self.hero.width:
+            self.hero.set_position((next_x, next_y))
 
 
 all_sprites = pygame.sprite.Group()
@@ -105,10 +120,12 @@ def main():
     Border(5, 5, 5, WINDOW_HEIGHT - 5)
     Border(WINDOW_WIDTH - 5, 5, WINDOW_WIDTH - 5, WINDOW_HEIGHT - 5)
     image = load_image("фон.png")
-    image1 = pygame.transform.scale(image, WINDOW_SIZE)
+    image_background = pygame.transform.scale(image, WINDOW_SIZE)
+    '''image = load_image("bear.png")
+    image_bear = pygame.transform.scale(image, (125 * WINDOW_RATIO, 125 * WINDOW_RATIO))'''
     for i in range(10):
-        Ball(20, 100, 100)
-    hero = Hero((100, 100))
+        Ball(20, 100, 100, screen)
+    hero = Hero()
     game = Game(hero)
 
     running = True
@@ -119,11 +136,12 @@ def main():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 pass
         screen.fill(pygame.Color('black'))
-        screen.blit(image1, (0, 0))
+        screen.blit(image_background, (0, 0))
         all_sprites.draw(screen)
         all_sprites.update()
-        pygame.display.flip()
+        game.update_hero()
         game.render(screen)
+        pygame.display.update()
         clock.tick(FPS)
     pygame.quit()
 
