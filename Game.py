@@ -2,7 +2,7 @@ import pygame
 import random
 import sys
 import os
-WINDOW_RATIO = 0.9
+WINDOW_RATIO = 0.8
 WINDOW_SIZE = WINDOW_WIDTH, WINDOW_HEIGHT = 720 * WINDOW_RATIO, 1080 * WINDOW_RATIO
 TITLE_SIZE = 50
 SPEED = 5 * WINDOW_RATIO
@@ -20,6 +20,68 @@ def load_image(name, colorkey=None):
     return image
 
 
+def terminate():
+    pygame.quit()
+    sys.exit()
+
+
+def start_screen(screen):
+    intro_text = ["Проект",
+                  "Выполнил:",
+                  "Петоров Вячеслав",
+                  "9а"]
+
+    fon = pygame.transform.scale(load_image('фон.png'), (WINDOW_WIDTH, WINDOW_HEIGHT))
+    screen.blit(fon, (0, 0))
+    font = pygame.font.Font(None, 30)
+    text_coord = 50
+    for line in intro_text:
+        string_rendered = font.render(line, 1, (10, 30, 30))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 10
+        intro_rect.top = text_coord
+        intro_rect.x = 10
+        text_coord += intro_rect.height
+        text_w = string_rendered.get_width()
+        text_h = string_rendered.get_height()
+        pygame.draw.rect(screen, (10, 180, 180), (intro_rect[0] - 5, intro_rect[1] - 5, intro_rect[2] + 10, intro_rect[3] + 10))
+        screen.blit(string_rendered, intro_rect)
+
+
+def show_message(screen, message, flag, message2 = '100', message3 = '100'):
+    if flag:
+        font = pygame.font.Font(None, int(50 * WINDOW_RATIO))
+        distance = 0.04
+        interval = distance
+
+        text = font.render('SCR: ' + message, 1, (0, 75, 100))
+        text_x = WINDOW_WIDTH // 40
+        text_y = WINDOW_HEIGHT * interval
+        interval += distance
+        screen.blit(text, (text_x, text_y))
+
+        text = font.render('HLTH: ' + message2 + '%', 1, (175, 0, 25))
+        text_x = WINDOW_WIDTH // 40
+        text_y = WINDOW_HEIGHT * interval
+        interval += distance
+        screen.blit(text, (text_x, text_y))
+
+        text = font.render('RSN: ' + message3 + '%', 1, (40, 75, 25))
+        text_x = WINDOW_WIDTH // 40
+        text_y = WINDOW_HEIGHT * interval
+        interval += distance
+        screen.blit(text, (text_x, text_y))
+
+
+all_sprites = pygame.sprite.Group()
+horizontal_borders = pygame.sprite.Group()
+vertical_borders = pygame.sprite.Group()
+pins = pygame.sprite.Group()
+heros = pygame.sprite.Group()
+HLTH = 100
+RSN = 100
+
+
 class Border(pygame.sprite.Sprite):
     def __init__(self, x1, y1, x2, y2):
         super().__init__(all_sprites)
@@ -31,79 +93,7 @@ class Border(pygame.sprite.Sprite):
             self.add(horizontal_borders)
             self.image = pygame.Surface([x2 - x1, 1])
             self.rect = pygame.Rect(x1, y1, x2 - x1, 1)
-        self.image.fill((120, 200, 100))
-
-
-class Ball(pygame.sprite.Sprite):
-    def __init__(self, radius, x, y):
-
-        super().__init__(all_sprites)
-        radius = radius * WINDOW_RATIO
-        self.radius = radius
-
-        # image = load_image("pine2.png")
-        # self.image_cones = pygame.transform.scale(image, (radius * 5 * WINDOW_RATIO, radius * 5 * WINDOW_RATIO))
-        # screen.blit(self.image_cones, (x, y))
-        self.image = pygame.Surface((2 * radius, 2 * radius),
-                                    pygame.SRCALPHA, 32)
-        pygame.draw.circle(self.image, pygame.Color("red"),
-                           (radius, radius), radius)
-        self.rect = pygame.Rect(x, y, 2 * radius, 2 * radius)
-
-        self.vx = random.randint(-5, 5)
-        self.vy = random.randrange(-5, 5)
-
-    def update(self):
-        self.rect = self.rect.move(self.vx, self.vy)
-
-        if pygame.sprite.spritecollideany(self, horizontal_borders):
-            self.vy = -self.vy
-
-        if pygame.sprite.spritecollideany(self, vertical_borders):
-            self.vx = -self.vx
-
-
-class Car(pygame.sprite.Sprite):
-    def __init__(self, x, y, surf, group):
-        super(Car, self).__init__()
-        self.image = surf
-        self.rect = self.image.get_rect(center=(x, y))
-        self.add(group)
-
-    def update(self):
-        if self.rect.y < WINDOW_HEIGHT:
-            self.rect.y += SPEED * 0.6
-        else:
-            self.kill()
-
-
-pins = pygame.sprite.Group()
-
-
-class Hero:
-
-    def __init__(self):
-        image = load_image("bear.png")
-        self.image_bear = pygame.transform.scale(image, (125 * WINDOW_RATIO, 125 * WINDOW_RATIO))
-        self.image_bear_right = self.image_bear
-        self.image_bear_left = pygame.transform.flip(self.image_bear, 1, 0)
-        self.width = self.image_bear.get_width()
-        self.x, self.y = WINDOW_WIDTH // 2, WINDOW_HEIGHT - self.image_bear.get_height()\
-                         - self.image_bear.get_height() * 0.2
-
-
-    def get_position(self):
-        return self.x, self.y
-
-    def set_position(self, position):
-        self.x, self.y = position
-
-    def render(self, screen, flag):
-        if flag == 'left':
-            self.image_bear = self.image_bear_left
-        else:
-            self.image_bear = self.image_bear_right
-        screen.blit(self.image_bear, (self.x, self.y))
+        self.image.fill((40, 75, 25))
 
 
 class Game:
@@ -128,31 +118,97 @@ class Game:
 
         if pygame.key.get_pressed()[pygame.K_UP]:
             next_y -= SPEED
+            next_y = max(next_y, int(WINDOW_HEIGHT - 200 * WINDOW_RATIO))
+
 
         if pygame.key.get_pressed()[pygame.K_DOWN]:
             next_y += SPEED
+            next_y = min(next_y, WINDOW_HEIGHT - self.hero.height)
 
         if 0 < next_x < WINDOW_WIDTH - self.hero.width:
             self.hero.set_position((next_x, next_y))
 
-all_sprites = pygame.sprite.Group()
-horizontal_borders = pygame.sprite.Group()
-vertical_borders = pygame.sprite.Group()
+
+class Pine(pygame.sprite.Sprite):
+    def __init__(self, x, y, surf, group):
+        super(Pine, self).__init__()
+        self.image = surf
+        self.rect = self.image.get_rect(center=(x, y))
+        self.add(group)
+
+        self.vx = 0
+        self.vy = SPEED * 0.8
+
+    def update(self):
+        if pygame.sprite.spritecollideany(self, heros):
+            global HLTH, RSN
+            damage = 20 + (100 - RSN) / 20
+            HLTH -= damage
+            HLTH = max(HLTH, 0)
+            self.kill()
+        if self.rect.y < WINDOW_HEIGHT:
+            self.rect.y += self.vy
+        else:
+            self.kill()
+
+
+class Hero(pygame.sprite.Sprite):
+
+    def __init__(self):
+        super(Hero, self).__init__()
+        self.add(heros)
+        image = load_image("bear.png")
+        self.image_bear = pygame.transform.scale(image, (125 * WINDOW_RATIO, 125 * WINDOW_RATIO))
+        self.image_bear_right = self.image_bear
+        self.image_bear_left = pygame.transform.flip(self.image_bear, 1, 0)
+        self.x, self.y = WINDOW_WIDTH // 2, WINDOW_HEIGHT - self.image_bear.get_height() \
+                         - self.image_bear.get_height() * 0.2
+        c1 = 4 / 14 * self.image_bear.get_width()
+        self.rect = self.help1()
+        self.mask = pygame.mask.from_surface(self.image_bear)
+        self.width = self.image_bear.get_width()
+        self.height = self.image_bear.get_height()
+
+    def help1(self):
+        c1 = 4 / 14 * self.image_bear.get_width()
+        return (self.x + c1, self.y, self.image_bear.get_width()
+                - c1 * 2, self.image_bear.get_height() * 0.1)
+
+    def get_position(self):
+        return self.x, self.y
+
+    def set_position(self, position):
+        self.x, self.y = position
+        c1 = 4 / 14 * self.image_bear.get_width()
+        self.rect = self.help1()
+        self.mask = pygame.mask.from_surface(self.image_bear)
+
+    def render(self, screen, flag):
+        if flag == 'left':
+            self.image_bear = self.image_bear_left
+        else:
+            self.image_bear = self.image_bear_right
+        screen.blit(self.image_bear, (self.x, self.y))
+
 
 
 def main():
-
     pygame.init()
     clock = pygame.time.Clock()
-    pygame.time.set_timer(pygame.USEREVENT, 500)
     screen = pygame.display.set_mode(WINDOW_SIZE)
+
+
+    speed_gen = 300
+    pygame.time.set_timer(pygame.USEREVENT, speed_gen)
+
+    score = 0
+
+    start_screen(screen)
 
     Border(5, 5, WINDOW_WIDTH - 5, 5)
     Border(5, WINDOW_HEIGHT - 5, WINDOW_WIDTH - 5, WINDOW_HEIGHT - 5)
     Border(5, 5, 5, WINDOW_HEIGHT - 5)
     Border(WINDOW_WIDTH - 5, 5, WINDOW_WIDTH - 5, WINDOW_HEIGHT - 5)
-    for i in range(0):
-        Ball(20, 100, 100)
 
     image = load_image("фон.png")
     image_background = pygame.transform.scale(image, WINDOW_SIZE)
@@ -161,37 +217,60 @@ def main():
     image_pine = pygame.transform.flip(image_pine, 0, 1)
 
     hero = Hero()
+    global HLTH, RSN
+    flag = False
     game = Game(hero)
-    Car(random.randint(1, WINDOW_HEIGHT), random.randint(1, WINDOW_WIDTH // 2), image_pine, pins)
-
-    running = True
-
-    while running:
+    Pine(random.randint(1, WINDOW_HEIGHT), random.randint(1, WINDOW_WIDTH // 2), image_pine, pins)
+    while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                pass
-            if event.type == pygame.USEREVENT:
-                Car(random.randint(1, WINDOW_HEIGHT), random.randint(1, WINDOW_WIDTH // 2), image_pine, pins)
+                terminate()
+            if HLTH == 0:
+                flag = False
+            if event.type == pygame.KEYDOWN or \
+                    event.type == pygame.MOUSEBUTTONDOWN:
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    HLTH = 100
+                    RSN = 100
+                    score = 0
+                    for pine in pins:
+                        pine.kill()
+                    flag = True
+                elif event.key == pygame.K_KP_ENTER:
+                    HLTH = 100
+                    RSN = 100
+                    score = 0
+                    for pine in pins:
+                        pine.kill()
+                    flag = True
+            if event.type == pygame.USEREVENT and flag:
+                score += 1
+                Pine(random.randint(1, WINDOW_WIDTH), random.randint(1, WINDOW_HEIGHT // 2), image_pine, pins)
+                if random.choice([0, 1, 0, 0]):
+                    Pine(hero.get_position()[0] + hero.width // 2, random.randint(1, WINDOW_HEIGHT // 2), image_pine, pins)
+                    RSN -= 1
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    flag = False
+        if flag:
+            screen.fill(pygame.Color('black'))
+            screen.blit(image_background, (0, 0))
 
-        screen.fill(pygame.Color('black'))
-        screen.blit(image_background, (0, 0))
+            all_sprites.draw(screen)
+            all_sprites.update()
 
-        all_sprites.draw(screen)
-        all_sprites.update()
+            pins.draw(screen)
+            pins.update()
 
-        pins.draw(screen)
-        pins.update()
+            game.update_hero()
+            game.render(screen)
 
-        game.update_hero()
-        game.render(screen)
+            show_message(screen, str(score), flag, message2=str(HLTH), message3=str(RSN))
+        else:
+            start_screen(screen)
+            show_message(screen, str(score), flag)
 
         pygame.display.flip()
-
         clock.tick(FPS)
-
-    pygame.quit()
-
 if __name__ == '__main__':
     main()
