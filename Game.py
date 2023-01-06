@@ -33,7 +33,7 @@ def start_screen(screen):
 
     fon = pygame.transform.scale(load_image('фон.png'), (WINDOW_WIDTH, WINDOW_HEIGHT))
     screen.blit(fon, (0, 0))
-    font = pygame.font.Font(None, 30)
+    font = pygame.font.Font(None, int(30 * WINDOW_RATIO))
     text_coord = 50
     for line in intro_text:
         string_rendered = font.render(line, 1, (10, 30, 30))
@@ -60,7 +60,7 @@ def show_message(screen, message, flag, message2 = '100', message3 = '100'):
         interval += distance
         screen.blit(text, (text_x, text_y))
 
-        text = font.render('HLTH: ' + message2 + '%', 1, (175, 0, 25))
+        text = font.render('HLTH: ' + str(round(float(message2), 1)) + '%', 1, (175, 0, 25))
         text_x = WINDOW_WIDTH // 40
         text_y = WINDOW_HEIGHT * interval
         interval += distance
@@ -191,6 +191,36 @@ class Hero(pygame.sprite.Sprite):
         screen.blit(self.image_bear, (self.x, self.y))
 
 
+def show_game_over(screen, message, score):
+    intro_text = [score]
+
+    fon = pygame.transform.scale(load_image('фон.png'), (WINDOW_WIDTH, WINDOW_HEIGHT))
+    # screen.blit(fon, (0, 0))
+    font = pygame.font.Font(None, int(100 * WINDOW_RATIO))
+    text_coord = 300 * WINDOW_RATIO
+    for line in intro_text:
+        string_rendered = font.render(line, 1, (150, 0, 30))
+        intro_rect = string_rendered.get_rect()
+        text_w = string_rendered.get_width()
+        text_h = string_rendered.get_height()
+        text_coord += 10
+        intro_rect.top = text_coord
+        intro_rect.x = WINDOW_WIDTH // 2 - text_w // 2
+        text_coord += intro_rect.height
+        pygame.draw.rect(screen, (40, 50, 40),
+                         (intro_rect[0] - 5, intro_rect[1] - 5, intro_rect[2] + 10, intro_rect[3] + 10), 5)
+        screen.blit(string_rendered, intro_rect)
+
+    font = pygame.font.Font(None, int(100 * WINDOW_RATIO))
+    text = font.render(message, 1, (150, 0, 30))
+    text_x = WINDOW_WIDTH // 2 - text.get_width() // 2
+    text_y = WINDOW_HEIGHT * 0.5 - text.get_height() // 2
+    text_w = text.get_width()
+    text_h = text.get_height()
+    pygame.draw.rect(screen, (40, 50, 40), (text_x - 10, text_y - 10,
+                                              text_w + 20, text_h + 20), 5)
+    screen.blit(text, (text_x, text_y))
+
 
 def main():
     pygame.init()
@@ -267,8 +297,11 @@ def main():
 
             show_message(screen, str(score), flag, message2=str(HLTH), message3=str(RSN))
         else:
-            start_screen(screen)
-            show_message(screen, str(score), flag)
+            if HLTH == 0:
+                show_game_over(screen, 'Game Over', str(score))
+            else:
+                start_screen(screen)
+                show_message(screen, str(score), flag)
 
         pygame.display.flip()
         clock.tick(FPS)
