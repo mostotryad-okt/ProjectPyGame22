@@ -5,7 +5,7 @@ import os
 WINDOW_RATIO = 0.8
 WINDOW_SIZE = WINDOW_WIDTH, WINDOW_HEIGHT = 720 * WINDOW_RATIO, 1080 * WINDOW_RATIO
 TITLE_SIZE = 50
-SPEED = 5 * WINDOW_RATIO
+SPEED = 10 * WINDOW_RATIO
 ENEMY_EVENT_TYPE = 30
 FPS = 120
 
@@ -75,7 +75,7 @@ def show_message(screen, message, flag, message2 = '100', message3 = '100'):
         interval += distance
         screen.blit(text, (text_x, text_y))
 
-        text = font.render('LVL: ' + str(100 - int(message3)) + '%', 1, (40, 75, 25))
+        text = font.render('LVL: ' + str(100 - float(message3)) + '%', 1, (40, 75, 25))
         text_x = WINDOW_WIDTH // 40
         text_y = WINDOW_HEIGHT * interval
         interval += distance
@@ -321,7 +321,7 @@ def main():
                 Pine(random.randint(1, WINDOW_WIDTH), random.randint(1, WINDOW_HEIGHT // 2), image_pine, pins)
                 if random.choice([0, 1, 0, 0]):
                     Pine(hero.get_position()[0] + hero.width // 2, random.randint(1, WINDOW_HEIGHT // 2), image_pine, pins)
-                    RSN -= 1
+                    RSN -= 1 * SPEED / 5
                     RSN = max(RSN, 0)
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
