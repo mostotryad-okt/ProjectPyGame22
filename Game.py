@@ -75,7 +75,7 @@ def show_message(screen, message, flag, message2 = '100', message3 = '100'):
         interval += distance
         screen.blit(text, (text_x, text_y))
 
-        text = font.render('LVL: ' + str(100 - float(message3)) + '%', 1, (40, 75, 25))
+        text = font.render('LVL: ' + str(round(100 - float(message3), 1)) + '%', 1, (40, 75, 25))
         text_x = WINDOW_WIDTH // 40
         text_y = WINDOW_HEIGHT * interval
         interval += distance
